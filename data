@@ -1,0 +1,10 @@
+OPERATION:2
+KEY:6
+PHRASE: ZNK WA
+
+SELECT OPERATION:
+1--> rotation encryption
+2--> rotation decryption
+3--> substitution encryption
+4--> substitution decryption
+5--> rotation decryption without key
