@@ -1,10 +1,10 @@
-OPERATION:2
-KEY:6
-PHRASE: ZNK WA
+OPERATION:4
+KEY:QWERTYUIOPASDFGHJKLZXCVBNM
 
+PHRASE: ZIT jxoEA WKGVf YGb PxDHTR GCtK zIT SQmN rGU
 SELECT OPERATION:
 1--> rotation encryption
 2--> rotation decryption
 3--> substitution encryption
 4--> substitution decryption
-5--> rotation decryption without key
+5--> rotation decryption without key (only works if the most common letter is e)

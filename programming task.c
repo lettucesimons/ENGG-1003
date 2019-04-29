@@ -21,7 +21,7 @@ int strlng(char*str); //function to find the length
 int main()	{
 	int n=0; //counter
 	int length; //variable to pass strlng to other functions
-	int cml;//variable to pass commonletter to other functions
+	int ky;// variable to pass two digit keys to be printed as an int
 	int operation; //variable to select operation found in the header
 	char txt[1024]; //string to encode/decode
 	char key[1024]; //key for cipher
@@ -36,7 +36,7 @@ int main()	{
 	for(n=0; n<10; n++)	{
 		fscanf(input, "%c", &rubbish[n]); //advance past OPERATION:
 	}
-	fscanf(input, "%d", &operation);
+	fscanf(input, "%d", &operation); //operation string
 		
 	
 	/*scans the first line from a file to variable key until a new line character is encountered. This is set to null*/
@@ -45,7 +45,7 @@ int main()	{
 	for(n=0; n<1019; n++)	{
 		fscanf(input, "%c", &key[n]);
 		if (key[n] == 10)	{ 
-			key[n] = 0; 
+			key[n] = 'E'; //setting a marker for rotation keys
 			break;
 		}
 	}	
@@ -62,13 +62,20 @@ int main()	{
 	length = strlng(txt);
 	printf("PHRASE: '%s'\n", txt); //prints the string to the screen
 
-		switch(operation)	{ //selects operation based on information in header file
+		switch(operation)	{ //selects operation based on information in header file written to the operation string
 			case 1:
-				printf("ROTATION ENCRYPTION SELECTED\nKEY: '%s'\nROTATION ENCRYPTED PHRASE: '%s'\n", key, rotencode(txt, key, length));
-				printf("TEST: %d", key[0]);
+				if (key[1] == 'E') // moving the key from an array to an int for printing (this is done in ASCII for the function
+					ky=(key[0])-48;
+				else  
+					ky = (((key[0]-48)*10) + (key[1]-48)); // first place is multiplied by ten then second place is added (-48 to convert from ASCII)
+				printf("ROTATION ENCRYPTION SELECTED\nKEY: '%d'\nROTATION ENCRYPTED PHRASE: '%s'\n", ky, rotencode(txt, key, length));
 				break;
 			case 2:
-				printf("ROTATION DECRYPTION SELECTED\nKEY: '%s'\nROTATION DECRYPTED PHRASE: '%s'\n", key, rotdecode(txt, key, length));
+				if (key[1] == 'E') // moving the key from an array to an int for printing (this is done in ASCII for the function
+					ky=(key[0])-48;
+				else  
+					ky = (((key[0]-48)*10) + (key[1]-48));
+				printf("ROTATION DECRYPTION SELECTED\nKEY: '%d'\nROTATION DECRYPTED PHRASE: '%s'\n", ky, rotdecode(txt, key, length));
 				break;
 			case 3:
 				printf("SUBSTITUTION ENCRYPTION SELECTED\nKEY: '%s'\nSUBSTITUTION ENCRYPTED PHRASE: '%s'\n", key, subencode(txt, key, length));
@@ -76,14 +83,21 @@ int main()	{
 			case 4:
 				printf("SUBSTITUTION DECRYPTION SELECTED\nKEY: '%s'\nSUBSTITUTION DECRYPTED PHRASE: '%s'\n", key, subdecode(txt, key, length));
 				break;
-			case 5:
-				key[0] = commonletter(txt, length)-69+48; //find the difference between most common letter and e, adding 58 to convert to ascii
-				printf("ROTATION DECRYPTION W/O KEY SELECTED\nKEY: '%s'\nROTATION DECRYPTED PHRASE: '%s'\n", key, rotdecode(txt, key, length));
+			case 5: // this only works if the most common letter is e
+				printf ("Common Letter: %c\n", commonletter(txt, length));
+				ky = commonletter(txt, length)-69+48; //find the difference between most common letter and e, adding 48 to convert to ascii
+				for(n=0;n<length;n++)	{
+					if (txt[n]<91 && txt[n]>64) //uppercase
+						txt[n] = (((txt[n]-65-(ky-48))+26)%26)+65; 
+					if (txt[n]<123 && txt[n]>96) //lowercase
+						txt[n] = (((txt[n]-97-(ky-48))+26)%26)+97-32; //-32 to convert to uppercase
+	}
+				printf("ROTATION DECRYPTION W/O KEY SELECTED\nROTATION DECRYPTED PHRASE: '%s'\n", txt);
 				
 break;
 			
 			default:
-				printf("please enter a valid number\n");
+				printf("please enter a valid number\n"); //runs if the header file has the wrong value
 				break;
 		}
 
@@ -92,6 +106,7 @@ return 0;
 
 char* rotencode(char*txt, char*key, int length)	{
 	/*this function reads through the text string between 0 and its length and for each character:
+		-moves the key from an array to an int
 		-decides if it is uppercase or lowercase based on the range of ASCII values (everything else is left as is)
 		-subtracts a number to get the letters between 0 and 25
 		-adds the key which is the 0th element of the string converted from ASCII to a number
@@ -99,17 +114,23 @@ char* rotencode(char*txt, char*key, int length)	{
 		-takes the remainder using the modulus operator
 		-returns the 0-25 to ASCII by adding a value */
 	int n=0;
+	int ky;
+	if (key[1] == 'E') // moving the key from an array to an int
+		ky=(key[0]);
+	else  
+		ky = (((key[0]-48)*10) + (key[1]-48))+48;
 	for(n=0;n<length;n++)	{
 		if (txt[n]<91 && txt[n]>64) //uppercase
-			txt[n] = (((txt[n]-65+(key[0]-48))+26)%26)+65; 
+			txt[n] = (((txt[n]-65+(ky-48))+26)%26)+65; 
 		if (txt[n]<123 && txt[n]>96) //lowercase
-			txt[n] = (((txt[n]-97+(key[0]-48))+26)%26)+97-32; //-32 to convert to uppercase
+			txt[n] = (((txt[n]-97+(ky-48))+26)%26)+97-32; //-32 to convert to uppercase
 	}
 	return txt;
 }
 
 char* rotdecode(char*txt, char*key, int length)	{
 	/*this function reads through the text string between 0 and its length and for each character:
+		-moves the key from an array to an int
 		-decides if it is uppercase or lowercase based on the range of ASCII values (everything else is left as is)
 		-subtracts a number to get the letters between 0 and 25
 		-subtracts the key which is the 0th element of the string converted from ASCII to a number
@@ -117,11 +138,16 @@ char* rotdecode(char*txt, char*key, int length)	{
 		-takes the remainder using the modulus operator
 		-returns the 0-25 to ASCII by adding a value */
 	int n=0;
+	int ky;
+	if (key[1] == 'E') // moving the key from an array to an int
+		ky=(key[0]);
+	else  
+		ky = (((key[0]-48)*10) + (key[1]-48))+48;
 	for(n=0;n<length;n++)	{
 		if (txt[n]<91 && txt[n]>64) //uppercase
-			txt[n] = (((txt[n]-64-(key[0]-48))+26)%26)+64; 
+			txt[n] = (((txt[n]-65-(ky-48))+26)%26)+65; 
 		if (txt[n]<123 && txt[n]>96) //lowercase
-			txt[n] = (((txt[n]-97-(key[0]-48))+26)%26)+97-32; //-32 to convert to uppercase
+			txt[n] = (((txt[n]-97-(ky-48))+26)%26)+97-32; //-32 to convert to uppercase
 	}
 	return txt;
 }
@@ -132,7 +158,8 @@ char* subencode(char*txt, char*key, int length)	{
 		-subtracts a number to get the letters between 0 and 25
 		-finds that position in the key string and reassigns the value 
 		-adds 32 to the lowercase letters to convert them as the key is uppercase */
-	int n=0;	
+	int n=0;
+	key[26]=0; //set end to null	
 	for(n=0;n<length;n++)	{
 		if (txt[n]<91 && txt[n]>64)	{ //uppercase
 			txt[n] = txt[n]-65; 
@@ -154,6 +181,7 @@ char* subdecode(char*txt, char*key, int length)  {
 		-adds a number to convert to ASCII */
 	int n=0;
 	int k=0; //counter for the key
+	key[26]=0; //set end to null
 	for(n=0;n<length;n++)	{
 		if (txt[n]<91 && txt[n]>64)	{ //uppercase
 			for (k=0; k<30; k++)	{ //going through every value of the the key
